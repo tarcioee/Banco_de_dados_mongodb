@@ -1,0 +1,20 @@
+\COPY (SELECT '[' || string_agg(row_to_json(funcionario)::text, ',') || ']' FROM funcionario) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\funcionario.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+\COPY (SELECT '[' || string_agg(row_to_json(cliente)::text, ',') || ']' FROM cliente) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\cliente.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+\COPY (SELECT '[' || string_agg(row_to_json(cargo)::text, ',') || ']' FROM cargo) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\cargo.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+\COPY (SELECT '[' || string_agg(row_to_json(funcionario_pedido)::text, ',') || ']' FROM funcionario_pedido) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\funcionario_pedido.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+\COPY (SELECT '[' || string_agg(row_to_json(ingrediente)::text, ',') || ']' FROM ingrediente) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\ingrediente.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+\COPY (SELECT '[' || string_agg(row_to_json(pedido)::text, ',') || ']' FROM pedido) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\pedido.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+\COPY (SELECT '[' || string_agg(row_to_json(produto)::text, ',') || ']' FROM produto) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\produto.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+\COPY (SELECT '[' || string_agg(row_to_json(produto_ingrediente)::text, ',') || ']' FROM produto_ingrediente) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\produto_ingrediente.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+\COPY (SELECT '[' || string_agg(row_to_json(produto_pedido)::text, ',') || ']' FROM produto_pedido) TO 'C:\Users\user\projetos\MATA60_trab2\colecao\produto_pedido.json' WITH (FORMAT text, ENCODING 'UTF8');
+
+
+

@@ -1,0 +1,9 @@
+mongoimport --db Vivipizas --collection funcionario --file funcionario.json --jsonArray
+mongoimport --db Vivipizas --collection cargo --file cargo.json --jsonArray
+mongoimport --db Vivipizas --collection cliente --file cliente.json --jsonArray
+mongoimport --db Vivipizas --collection funcionario_pedido --file funcionario_pedido.json --jsonArray
+mongoimport --db Vivipizas --collection ingrediente --file ingrediente.json --jsonArray
+mongoimport --db Vivipizas --collection pedido --file pedido.json --jsonArray
+mongoimport --db Vivipizas --collection produto --file produto.json --jsonArray
+mongoimport --db Vivipizas --collection produto_ingrediente --file produto_ingrediente.json --jsonArray
+mongoimport --db Vivipizas --collection produto_pedido --file produto_pedido.json --jsonArray

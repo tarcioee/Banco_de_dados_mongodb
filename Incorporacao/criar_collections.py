@@ -41,19 +41,6 @@ db.create_collection("Pedido", validator={
     }
 })
 
-# Coleção Cargo
-db.create_collection("Cargo", validator={
-    "$jsonSchema": {
-        "bsonType": "object",
-        "required": ["nm_cargo"],
-        "properties": {
-            "cp_id_cargo": {"bsonType": "objectId"},
-            "nm_cargo": {"bsonType": "string", "maxLength": 100},
-            "salario": {"bsonType": "double", "minimum": 0},
-            "horas_semanais": {"bsonType": "int"}
-        }
-    }
-})
 
 # Coleção Funcionario
 db.create_collection("Funcionario", validator={
@@ -62,13 +49,30 @@ db.create_collection("Funcionario", validator={
         "required": ["ce_cargo", "nm_funcionario", "status_funcionario"],
         "properties": {
             "cp_id_funcionario": {"bsonType": "objectId"},
-            "ce_cargo": {"bsonType": "objectId"},
             "nm_funcionario": {"bsonType": "string", "maxLength": 100},
             "cpf_funcionario": {"bsonType": "string", "maxLength": 11},
             "email_funcionario": {"bsonType": "string", "maxLength": 100},
             "tel_funcionario": {"bsonType": "string", "maxLength": 15},
             "tarefas_ativas": {"bsonType": "int", "minimum": 0},
-            "status_funcionario": {"bsonType": "string", "enum": status_funcionario_enum}
+            "status_funcionario": {"bsonType": "string", "enum": status_funcionario_enum},
+            "cargo": {
+                "bsonType": "object",
+                "required": ["nm_cargo", "salario", "horas_semanais"],
+                "properties": {
+                    "nm_cargo": {
+                        "bsonType": "string",
+                        "maxLength": 100
+                    },
+                    "salario": {
+                        "bsonType": "double",
+                        "minimum": 0
+                    },
+                    "horas_semanais": {
+                        "bsonType": "int",
+                        "minimum": 0
+                    }
+                }
+            }
         }
     }
 })
@@ -88,20 +92,19 @@ db.create_collection("Produto", validator={
             "tamanho_pizza": {"bsonType": "string", "maxLength": 20},
             "volume_bebida": {"bsonType": "string", "maxLength": 20},
             "qtd_disponivel": {"bsonType": "int", "minimum": 0},
-            "porcentagem_promoção": {"bsonType": "double", "maximum": 100}
-        }
-    }
-})
-
-# Coleção Ingrediente
-db.create_collection("Ingrediente", validator={
-    "$jsonSchema": {
-        "bsonType": "object",
-        "required": ["nm_ingrediente", "tipo"],
-        "properties": {
-            "cp_id_ingrediente": {"bsonType": "objectId"},
-            "nm_ingrediente": {"bsonType": "string", "maxLength": 100},
-            "tipo": {"bsonType": "string", "enum": ["animal", "vegetal", "farinha", "lacticinio", "outro"]}
+            "porcentagem_promoção": {"bsonType": "double", "maximum": 100},
+            "Ingredientes":{
+                "bsonType": "array",
+                "items":{
+                    "bsonType": "object",
+                    "required": ["nm_ingrediente", "tipo"],
+                    "properties": {
+                        "nm_ingrediente": {"bsonType": "string", "maxLength": 100},
+                        "tipo": {"bsonType": "string", "enum": ["animal", "vegetal", "farinha", "lacticinio", "outro"]},
+                        "gramas_ingrediente": {"bsonType": "int", "minimum": 1}
+                    }
+                }
+            }
         }
     }
 })
@@ -131,20 +134,6 @@ db.create_collection("Produto_pedido", validator={
             "ce_produto": {"bsonType": "objectId"},
             "ce_pedido": {"bsonType": "objectId"},
             "qtd_compradas": {"bsonType": "int", "minimum": 1}
-        }
-    }
-})
-
-# Coleção Produto_ingrediente
-db.create_collection("Produto_ingrediente", validator={
-    "$jsonSchema": {
-        "bsonType": "object",
-        "required": ["ce_produto", "ce_ingrediente"],
-        "properties": {
-            "cp_id_produto_id_ingrediente": {"bsonType": "objectId"},
-            "ce_produto": {"bsonType": "objectId"},
-            "ce_ingrediente": {"bsonType": "objectId"},
-            "gramas_ingrediente": {"bsonType": "int", "minimum": 1}
         }
     }
 })

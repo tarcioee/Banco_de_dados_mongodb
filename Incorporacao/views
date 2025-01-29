@@ -1,0 +1,128 @@
+// Excluir e recriar mv_clientes_sem_animal
+db.mv_clientes_sem_animal.drop();
+db.createCollection('mv_clientes_sem_animal');
+
+db.Pedido.aggregate([
+  { $match: { status_pedido: 'Concluído' } },
+  { $lookup: { from: "Produto_pedido", localField: "_id", foreignField: "ce_pedido", as: "produtos_pedido" } },
+  { $unwind: "$produtos_pedido" },
+  { $lookup: { from: "Produto", localField: "produtos_pedido.ce_produto", foreignField: "_id", as: "produtos" } },
+  { $match: { "produtos.ingredientes.tipo": { $ne: "animal" } } },
+  { $group: { _id: "$ce_cliente", total_pedidos: { $sum: 1 } } },
+  { $lookup: { from: "Cliente", localField: "_id", foreignField: "_id", as: "cliente_info" } },
+  { $unwind: "$cliente_info" },
+  { $project: { cliente_id: "$_id", nm_cliente: "$cliente_info.nm_cliente", total_pedidos: 1 } },
+  { $out: "mv_clientes_sem_animal" }
+]);
+
+// Excluir e recriar mv_historico_compras_cliente
+db.mv_historico_compras_cliente.drop();
+db.createCollection('mv_historico_compras_cliente');
+
+db.Pedido.aggregate([
+  { $match: { status_pedido: 'Concluído' } },
+  { $group: { 
+      _id: "$ce_cliente", 
+      total_pedidos: { $sum: 1 }, 
+      total_gasto: { $sum: "$valor_total" } 
+    }
+  },
+  { $lookup: { 
+      from: "Cliente", 
+      localField: "_id", 
+      foreignField: "_id", 
+      as: "cliente_info" 
+    } 
+  },
+  { $unwind: "$cliente_info" },
+  { $project: { 
+      cp_id_cliente: "$_id", 
+      nm_cliente: "$cliente_info.nm_cliente", 
+      total_pedidos: 1, 
+      total_gasto: 1 
+    } 
+  },
+  { $out: "mv_historico_compras_cliente" }
+]);
+
+// Excluir e recriar mv_pedidos_status_entrega
+db.mv_pedidos_status_entrega.drop();
+db.createCollection('mv_pedidos_status_entrega');
+
+db.Pedido.aggregate([
+  { $lookup: { from: "Cliente", localField: "ce_cliente", foreignField: "_id", as: "cliente_info" } },
+  { $unwind: "$cliente_info" },
+  { $lookup: { from: "Produto_pedido", localField: "_id", foreignField: "ce_pedido", as: "produtos_pedido" } },
+  { $unwind: "$produtos_pedido" },
+  { $lookup: { from: "Produto", localField: "produtos_pedido.ce_produto", foreignField: "_id", as: "produtos" } },
+  { $unwind: "$produtos" },
+  { $lookup: { from: "Funcionario_pedido", localField: "_id", foreignField: "ce_pedido", as: "funcionario_pedido" } },
+  { $unwind: "$funcionario_pedido" },
+  { $lookup: { from: "Funcionario", localField: "funcionario_pedido.ce_funcionario", foreignField: "_id", as: "funcionarios" } },
+  { $unwind: "$funcionarios" },
+  {
+    $addFields: {
+      status_entrega: {
+        $switch: {
+          branches: [
+            { case: { $eq: ["$status_pedido", "Em aberto"] }, then: "Aguardando" },
+            { case: { $eq: ["$status_pedido", "Concluído"] }, then: "Finalizado" },
+            { case: { $eq: ["$status_pedido", "Cancelado"] }, then: "Cancelado" },
+            { 
+              case: {
+                $and: [
+                  { $eq: ["$funcionarios.status_funcionario", "Disponível"] },
+                  { $eq: ["$funcionarios.status_funcionario", "Disponível"] }
+                ]
+              }, 
+              then: "Em Preparação" 
+            }
+          ],
+          default: "Em Entrega"
+        }
+      }
+    }
+  },
+  { $group: {
+      _id: "$_id",
+      data_pedido: { $first: "$data_pedido" },
+      status_pedido: { $first: "$status_pedido" },
+      valor_total: { $first: "$valor_total" },
+      cliente_nome: { $first: "$cliente_info.nm_cliente" },
+      produtos: { $push: "$produtos.nm_produto" },
+      entregador: { $first: "$funcionarios.nm_funcionario" },
+      cozinheiro: { $first: "$funcionarios.nm_funcionario" },
+      status_entrega: { $first: "$status_entrega" }
+    }
+  },
+  { $project: {
+      pedido_id: "$_id",
+      data_pedido: 1,
+      status_pedido: 1,
+      valor_total: 1,
+      cliente_nome: 1,
+      produtos: { $reduce: { input: "$produtos", initialValue: "", in: { $concat: ["$$value", ", ", "$$this"] } } },
+      entregador: 1,
+      cozinheiro: 1,
+      status_entrega: 1
+    }
+  },
+  { $out: "mv_pedidos_status_entrega" }
+]);
+
+// Excluir e recriar mv_clientes_sem_laticinio
+db.mv_clientes_sem_laticinio.drop();
+db.createCollection('mv_clientes_sem_laticinio');
+
+db.Pedido.aggregate([
+  { $match: { status_pedido: 'Concluído' } },
+  { $lookup: { from: "Produto_pedido", localField: "_id", foreignField: "ce_pedido", as: "produtos_pedido" } },
+  { $unwind: "$produtos_pedido" },
+  { $lookup: { from: "Produto", localField: "produtos_pedido.ce_produto", foreignField: "_id", as: "produtos" } },
+  { $match: { "produtos.ingredientes.tipo": { $ne: "laticinio" } } },
+  { $group: { _id: "$ce_cliente", total_pedidos: { $sum: 1 } } },
+  { $lookup: { from: "Cliente", localField: "_id", foreignField: "_id", as: "cliente_info" } },
+  { $unwind: "$cliente_info" },
+  { $project: { cliente_id: "$_id", nm_cliente: "$cliente_info.nm_cliente", total_pedidos: 1 } },
+  { $out: "mv_clientes_sem_laticinio" }
+]);

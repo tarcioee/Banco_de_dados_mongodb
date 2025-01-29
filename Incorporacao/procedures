@@ -1,0 +1,90 @@
+// Função para atualizar o valor total do pedido com base nos produtos do pedido
+function atualizarValorTotalPedido(p_id_pedido) {
+    const pedido = db.Pedido.findOne({ _id: p_id_pedido });
+
+    if (!pedido) {
+        print("Pedido não encontrado.");
+        return;
+    }
+
+    const produtosPedido = db.Produto_pedido.find({ ce_pedido: p_id_pedido }).toArray();
+    
+    let novoValorTotal = 0;
+
+    produtosPedido.forEach(produtoPedido => {
+        const produto = db.Produto.findOne({ _id: produtoPedido.ce_produto });
+
+        if (produto) {
+            const precoComDesconto = produto.preco_produto * (1 - (produto.porcentagem_promocao || 0) / 100);
+            novoValorTotal += precoComDesconto * produtoPedido.qtd_compradas;
+        }
+    });
+
+    db.Pedido.updateOne(
+        { _id: p_id_pedido },
+        { $set: { valor_total: novoValorTotal } }
+    );
+
+    print("Valor total do pedido atualizado para:", novoValorTotal);
+}
+
+// Exemplo de chamada:
+// atualizarValorTotalPedido(ObjectId("ID_DO_PEDIDO"));
+
+
+// Função para listar pedidos em aberto de um funcionário específico
+function pedidosEmAbertoPorFuncionario(p_id_funcionario) {
+    return db.Pedido.aggregate([
+        { $match: { status_pedido: "Em aberto" } },
+        { $lookup: {
+            from: "Funcionario_pedido",
+            localField: "_id",
+            foreignField: "ce_pedido",
+            as: "funcionario_pedido"
+        }},
+        { $unwind: "$funcionario_pedido" },
+        { $match: { "funcionario_pedido.ce_funcionario": p_id_funcionario } },
+        { $lookup: {
+            from: "Produto_pedido",
+            localField: "_id",
+            foreignField: "ce_pedido",
+            as: "produtos_pedido"
+        }},
+        { $unwind: "$produtos_pedido" },
+        { $lookup: {
+            from: "Produto",
+            localField: "produtos_pedido.ce_produto",
+            foreignField: "_id",
+            as: "produto"
+        }},
+        { $unwind: "$produto" },
+        { $lookup: {
+            from: "Cliente",
+            localField: "ce_cliente",
+            foreignField: "_id",
+            as: "cliente"
+        }},
+        { $unwind: "$cliente" },
+        { $lookup: {
+            from: "Funcionario",
+            localField: "funcionario_pedido.ce_funcionario",
+            foreignField: "_id",
+            as: "funcionario"
+        }},
+        { $unwind: "$funcionario" },
+        { $project: {
+            _id: 1,
+            data_pedido: 1,
+            nm_produto: "$produto.nm_produto",
+            qtd_compradas: "$produtos_pedido.qtd_compradas",
+            preco_produto: "$produto.preco_produto",
+            nm_cliente: "$cliente.nm_cliente",
+            endereco: "$cliente.endereco",
+            nm_funcionario: "$funcionario.nm_funcionario",
+            status_pedido: 1
+        }}
+    ]).toArray();
+}
+
+// Exemplo de chamada:
+// printjson(pedidosEmAbertoPorFuncionario(ObjectId("ID_DO_FUNCIONARIO")));

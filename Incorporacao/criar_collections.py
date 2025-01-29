@@ -19,7 +19,18 @@ db.create_collection("Cliente", validator={
             "endereco": {"bsonType": "string", "maxLength": 255},
             "cpf_cliente": {"bsonType": "string", "maxLength": 11},
             "qtd_compras": {"bsonType": "int", "minimum": 0},
-            "categoria_cliente": {"bsonType": "string", "enum": ["bronze", "prata", "ouro"]}
+            "categoria_cliente": {"bsonType": "string", "enum": ["bronze", "prata", "ouro"]},
+            "questoes_alimentares":{
+                "bsonType": "array",
+                "items":{
+                    "bsonType": "object",
+                    "required": ["tipo"],
+                    "properties": {
+                        "tipo": {"bsonType": "string", "enum": ["diabetes", "hipertensão", "intolerante a lactose", "vegano", "vegetariano"]},
+                        "restringir":{"bsonType": "bool"}
+                    }
+                }
+            }
         }
     }
 })

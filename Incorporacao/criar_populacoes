@@ -28,6 +28,16 @@ for _ in range(5000):
     else:
         cat ="bronze"
     telefone = fake.phone_number()
+        # Gerar questões alimentares para o cliente
+    questoes_alimentares = []
+    for _ in range(random.randint(0, 3)):  # Um cliente pode ter de 0 a 3 questões alimentares
+        tipo = random.choice(["diabetes", "hipertensão", "intolerante a lactose", "vegano", "vegetariano"])
+        restringir = random.choice([True, False])
+        questao = {
+            "tipo": tipo,
+            "restringir": restringir
+        }
+        questoes_alimentares.append(questao)
     if len(telefone) > 15:
         telefone = telefone[:15]
     cliente = {
@@ -36,7 +46,8 @@ for _ in range(5000):
         "tel_cliente": telefone,
         "endereco": fake.address(),
         "qtd_compras": compras,
-        "categoria_cliente": cat
+        "categoria_cliente": cat,
+        "questoes_alimentares": questoes_alimentares
     }
     clientes.append(cliente)
 db.Cliente.insert_many(clientes)
@@ -52,7 +63,7 @@ cargos = [
 # --- Gerar dados para Funcionario ---
 funcionarios = []
 cpfs_funcionarios_usados = set()
-for _ in range(5000):
+for _ in range(20):
     while True:
         cpf = fake.cpf()
         cpf = fake.cpf().replace('.', '').replace('-', '')  

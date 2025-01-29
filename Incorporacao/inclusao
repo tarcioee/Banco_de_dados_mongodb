@@ -1,0 +1,63 @@
+db.Cliente.insertOne({
+    "nm_cliente": "João da Silva",
+    "cpf_cliente": "12345678901",
+    "tel_cliente": "(11) 98765-4321",
+    "endereco": "Rua Exemplo, 123, São Paulo - SP",
+    "qtd_compras": 150,
+    "categoria_cliente": "ouro",
+    "questoes_alimentares": [
+        { "tipo": "diabetes", "restringir": true },
+        { "tipo": "intolerante a lactose", "restringir": false }
+    ]
+});
+
+db.Pedido.insertOne({
+    "ce_cliente": ObjectId("ID_DO_CLIENTE"),  // Substitua pelo ID do cliente
+    "data_pedido": new Date(),
+    "observações": "Pedido com urgência",
+    "status_pedido": "Em aberto",
+    "valor_total": 120.50
+});
+
+db.Funcionario.insertOne({
+    "ce_cargo": ObjectId("ID_DO_CARGO"),  // Substitua pelo ID do cargo
+    "nm_funcionario": "Maria Oliveira",
+    "cpf_funcionario": "98765432100",
+    "email_funcionario": "maria.oliveira@email.com",
+    "tel_funcionario": "(11) 91234-5678",
+    "tarefas_ativas": 3,
+    "status_funcionario": "Disponível",
+    "cargo": {
+        "nm_cargo": "Atendente",
+        "salario": 1500.0,
+        "horas_semanais": 36
+    }
+});
+
+db.Produto.insertOne({
+    "tipo_produto": "pizza",
+    "nm_produto": "Pizza Margherita",
+    "preco_produto": 29.90,
+    "descricao": "Pizza preferida de Robespierre com molho de tomate, queijo e manjericão.",
+    "qtd_disponivel": 50,
+    "porcentagem_promoção": 20,
+    "tamanho_pizza": "Média",
+    "Ingredientes": [
+        { "nm_ingrediente": "Queijo", "tipo": "lacticinio", "gramas_ingrediente": 200 },
+        { "nm_ingrediente": "Tomate", "tipo": "vegetal", "gramas_ingrediente": 100 },
+        { "nm_ingrediente": "Manjericão", "tipo": "vegetal", "gramas_ingrediente": 50 }
+    ]
+});
+
+db.Funcionario_pedido.insertOne({
+    "ce_funcionario": ObjectId("ID_DO_FUNCIONARIO"),  // Substitua pelo ID do funcionário
+    "ce_pedido": ObjectId("ID_DO_PEDIDO"),  // Substitua pelo ID do pedido
+    "papel": "Cozinheiro",
+    "observação_funcionário": "Preparando a pizza."
+});
+
+db.Produto_pedido.insertOne({
+    "ce_produto": ObjectId("ID_DO_PRODUTO"),  // Substitua pelo ID do produto
+    "ce_pedido": ObjectId("ID_DO_PEDIDO"),  // Substitua pelo ID do pedido
+    "qtd_compradas": 2
+});

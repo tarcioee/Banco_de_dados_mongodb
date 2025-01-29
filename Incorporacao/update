@@ -1,0 +1,75 @@
+
+db.Cliente.updateOne(
+    { "cpf_cliente": "12345678901" },  // Substitua pelo CPF do cliente desejado
+    {
+        $push: {
+            "questoes_alimentares": {
+                "tipo": "hipertensão",  // Tipo da questão alimentar
+                "restringir": true      // Indica se deve restringir o alimento
+            }
+        }
+    }
+);
+
+// Atualizar Cliente (adicionar uma questão alimentar)
+db.Cliente.updateOne(
+    { "cpf_cliente": "12345678901" },  // Substitua pelo CPF do cliente desejado
+    {
+        $push: {
+            "questoes_alimentares": {
+                "tipo": "hipertensão",  // Tipo da questão alimentar
+                "restringir": true      // Indica se deve restringir o alimento
+            }
+        }
+    }
+);
+
+// Atualizar Pedido (alterar o status do pedido)
+db.Pedido.updateOne(
+    { "_id": ObjectId("ID_DO_PEDIDO") },  // Substitua pelo ID do pedido
+    {
+        $set: {
+            "status_pedido": "Concluído"  // Novo status do pedido
+        }
+    }
+);
+
+// Atualizar Funcionario (alterar o status de um funcionário)
+db.Funcionario.updateOne(
+    { "cpf_funcionario": "98765432100" },  // Substitua pelo CPF do funcionário
+    {
+        $set: {
+            "status_funcionario": "Indisponível"  // Novo status do funcionário
+        }
+    }
+);
+
+// Atualizar Produto (alterar a quantidade disponível)
+db.Produto.updateOne(
+    { "nm_produto": "Pizza Margherita" },  // Substitua pelo nome do produto
+    {
+        $inc: {
+            "qtd_disponivel": 10  // Incrementa 10 na quantidade disponível
+        }
+    }
+);
+
+// Atualizar Funcionario_pedido (alterar o papel de um funcionário em um pedido)
+db.Funcionario_pedido.updateOne(
+    { "ce_funcionario": ObjectId("ID_DO_FUNCIONARIO"), "ce_pedido": ObjectId("ID_DO_PEDIDO") },  // Substitua pelos IDs
+    {
+        $set: {
+            "papel": "Gerente"  // Novo papel do funcionário no pedido
+        }
+    }
+);
+
+// Atualizar Produto_pedido (alterar a quantidade de um produto em um pedido)
+db.Produto_pedido.updateOne(
+    { "ce_produto": ObjectId("ID_DO_PRODUTO"), "ce_pedido": ObjectId("ID_DO_PEDIDO") },  // Substitua pelos IDs
+    {
+        $set: {
+            "qtd_compradas": 3  // Nova quantidade comprada
+        }
+    }
+);

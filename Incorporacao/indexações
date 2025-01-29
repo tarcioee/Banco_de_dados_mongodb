@@ -1,0 +1,17 @@
+// Índice para busca de pedidos por status e cliente
+db.Pedido.createIndex({ status_pedido: 1, ce_cliente: 1 });
+
+// Índice para atualização de valor total do pedido
+db.Produto_pedido.createIndex({ ce_pedido: 1, ce_produto: 1 });
+
+// Índice para relacionar funcionários a pedidos
+db.Funcionario_pedido.createIndex({ ce_pedido: 1, ce_funcionario: 1, papel: 1 });
+
+// Índice para buscar produtos por pedido
+db.Produto_pedido.createIndex({ ce_pedido: 1 });
+
+// Índice para filtros por data
+db.Pedido.createIndex({ data_pedido: -1 });
+
+// Índice para filtrar clientes por compras
+db.Pedido.createIndex({ ce_cliente: 1, status_pedido: 1 });

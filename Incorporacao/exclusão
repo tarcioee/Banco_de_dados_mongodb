@@ -1,0 +1,41 @@
+// Excluir uma questão alimentar de um cliente (baseado no CPF e tipo de questão alimentar)
+db.Cliente.updateOne(
+    { "cpf_cliente": "12345678901" },  // Substitua pelo CPF do cliente
+    {
+        $pull: {
+            "questoes_alimentares": {
+                "tipo": "hipertensão"  // Substitua pelo tipo de questão alimentar a ser removida
+            }
+        }
+    }
+);
+
+// Excluir Cliente (baseado no CPF do cliente)
+db.Cliente.deleteOne(
+    { "cpf_cliente": "12345678901" }  // Substitua pelo CPF do cliente
+);
+
+// Excluir Pedido (baseado no ID do pedido)
+db.Pedido.deleteOne(
+    { "_id": ObjectId("ID_DO_PEDIDO") }  // Substitua pelo ID do pedido
+);
+
+// Excluir Funcionario (baseado no CPF do funcionário)
+db.Funcionario.deleteOne(
+    { "cpf_funcionario": "98765432100" }  // Substitua pelo CPF do funcionário
+);
+
+// Excluir Produto (baseado no nome do produto)
+db.Produto.deleteOne(
+    { "nm_produto": "Pizza Margherita" }  // Substitua pelo nome do produto
+);
+
+// Excluir Funcionario_pedido (baseado nos IDs do funcionário e pedido)
+db.Funcionario_pedido.deleteOne(
+    { "ce_funcionario": ObjectId("ID_DO_FUNCIONARIO"), "ce_pedido": ObjectId("ID_DO_PEDIDO") }  // Substitua pelos IDs
+);
+
+// Excluir Produto_pedido (baseado nos IDs do produto e pedido)
+db.Produto_pedido.deleteOne(
+    { "ce_produto": ObjectId("ID_DO_PRODUTO"), "ce_pedido": ObjectId("ID_DO_PEDIDO") }  // Substitua pelos IDs
+);

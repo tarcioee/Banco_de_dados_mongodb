@@ -1,0 +1,219 @@
+// Buscar Cliente (por CPF)
+db.Cliente.find({ "cpf_cliente": "12345678901" });  // Substitua pelo CPF desejado
+
+// Buscar Pedido (por ID do pedido)
+db.Pedido.find({ "_id": ObjectId("ID_DO_PEDIDO") });  // Substitua pelo ID do pedido
+
+// Buscar Funcionario (por CPF)
+db.Funcionario.find({ "cpf_funcionario": "98765432100" });  // Substitua pelo CPF desejado
+
+// Buscar Produto (por nome do produto)
+db.Produto.find({ "nm_produto": "Pizza Margherita" });  // Substitua pelo nome do produto
+
+// Buscar Funcionario_pedido (por ID do funcionário e pedido)
+db.Funcionario_pedido.find({
+    "ce_funcionario": ObjectId("ID_DO_FUNCIONARIO"),
+    "ce_pedido": ObjectId("ID_DO_PEDIDO")
+});  // Substitua pelos IDs
+
+// Buscar Produto_pedido (por ID do produto e pedido)
+db.Produto_pedido.find({
+    "ce_produto": ObjectId("ID_DO_PRODUTO"),
+    "ce_pedido": ObjectId("ID_DO_PEDIDO")
+});  // Substitua pelos IDs
+
+// Buscar todos os Clientes
+db.Cliente.find({});  // Retorna todos os clientes
+
+// Buscar todos os Pedidos com status "Concluído"
+db.Pedido.find({ "status_pedido": "Concluído" });  // Retorna pedidos com status "Concluído"
+
+// Buscar todos os Funcionários com status "Disponível"
+db.Funcionario.find({ "status_funcionario": "Disponível" });  // Retorna funcionários disponíveis
+
+// Buscar Produtos com quantidade disponível maior que 10
+db.Produto.find({ "qtd_disponivel": { $gt: 10 } });  // Retorna produtos com mais de 10 unidades disponíveis
+
+// Buscar todos os Clientes que possuem questões alimentares
+db.Cliente.find({ "questoes_alimentares": { $exists: true, $not: { $size: 0 } } });  // Retorna clientes com questões alimentares
+
+// Buscar Funcionários que têm o cargo "Cozinheiro" e que estão com status "Disponível"
+db.Funcionario.find({
+    "cargo.nm_cargo": "Cozinheiro",
+    "status_funcionario": "Disponível"
+});  // Retorna funcionários com cargo "Cozinheiro" e status "Disponível"
+
+// Buscar Produtos com preço entre 10 e 50 e com quantidade disponível acima de 20
+db.Produto.find({
+    "preco_produto": { $gte: 10, $lte: 50 },
+    "qtd_disponivel": { $gt: 20 }
+});  // Retorna produtos com preço entre 10 e 50 e quantidade disponível acima de 20
+
+// Buscar Funcionario_pedido que envolvem um Pedido com status "Concluído" e o Funcionario com tarefas ativas > 2
+db.Funcionario_pedido.find({
+    "ce_pedido": { $in: db.Pedido.find({ "status_pedido": "Concluído" }).map(p => p._id) },
+    "ce_funcionario": { $in: db.Funcionario.find({ "tarefas_ativas": { $gt: 2 } }).map(f => f._id) }
+});  // Retorna relações de funcionários e pedidos onde o pedido está "Concluído" e o funcionário tem mais de 2 tarefas ativas
+
+// 1. Consultar os tipos possíveis de ingrediente
+// Esta consulta retorna os tipos de ingredientes distintos a partir dos dados do produto
+db.Produto.aggregate([
+  { $unwind: "$Ingredientes" }, // Desfaz o array de ingredientes para processar cada um individualmente
+  { $group: { _id: "$Ingredientes.tipo" } } // Agrupa os resultados por tipo de ingrediente
+]);
+
+// 2. Cargos e seus salários
+// Esta consulta retorna os nomes dos funcionários e seus cargos, além dos salários definidos para cada cargo
+db.Funcionario.aggregate([
+  { $project: { _id: 1, nm_funcionario: 1, cargo: 1 } }, // Seleciona campos relevantes
+  { $unwind: "$cargo" }, // Desfaz o array de cargos
+  { $project: { _id: 1, nm_funcionario: 1, "cargo.nm_cargo": 1, "cargo.salario": 1 } } // Exibe nome do cargo e salário
+]);
+
+// 3. Horários de pico de pedidos
+// Esta consulta retorna os horários de pico de pedidos no último mês
+db.Pedido.aggregate([
+  { $match: { status_pedido: "Concluído", data_pedido: { $gte: new ISODate(new Date().setMonth(new Date().getMonth() - 1)) } } }, // Filtra pedidos concluídos do último mês
+  { $project: { hora: { $hour: "$data_pedido" } } }, // Extrai a hora do pedido
+  { $group: { _id: "$hora", total_pedidos: { $sum: 1 } } }, // Conta os pedidos por hora
+  { $sort: { total_pedidos: -1 } } // Ordena por quantidade de pedidos (maior para menor)
+]);
+
+// 4. Funcionários disponíveis
+// Esta consulta retorna a lista de funcionários que estão disponíveis para trabalhar
+db.Funcionario.aggregate([
+  { $match: { "status_funcionario": "Disponível" } }, // Filtra funcionários disponíveis
+  { $project: { nm_funcionario: 1, cpf_funcionario: 1, status_funcionario: 1, cargo: 1 } }, // Exibe informações do funcionário
+  { $unwind: "$cargo" }, // Desfaz o array de cargos
+  { $project: { nm_funcionario: 1, cpf_funcionario: 1, "cargo.nm_cargo": 1, status_funcionario: 1 } } // Exibe o nome do cargo também
+]);
+
+// 5. Consultar dados de um cliente
+// Esta consulta retorna os dados de um cliente específico
+db.Cliente.findOne({ _id: 1 }, { nm_cliente: 1, tel_cliente: 1, endereco: 1, cpf_cliente: 1, qtd_compras: 1, categoria_cliente: 1 });
+
+// 6. Consultar preço de um produto considerando promoção
+// Esta consulta retorna o preço de um produto considerando a promoção, se houver
+db.Produto.findOne({ _id: 10 }, { 
+  nm_produto: 1, 
+  preco_produto: 1, 
+  porcentagem_promoção: 1, 
+  preco_com_desconto: { $multiply: ["$preco_produto", { $subtract: [1, { $divide: ["$porcentagem_promoção", 100] }] }] } 
+});
+
+// 7. Funcionários entregadores disponíveis no momento
+// Esta consulta retorna os entregadores disponíveis no momento
+db.Funcionario.aggregate([
+  { $match: { "cargo.nm_cargo": "entregador", "status_funcionario": "Disponível" } }, // Filtra entregadores disponíveis
+  { $project: { nm_funcionario: 1, cpf_funcionario: 1, status_funcionario: 1, cargo: 1 } } // Exibe informações do entregador
+]);
+
+// 8. Funcionários que atenderam mais pedidos no último mês
+// Esta consulta retorna os funcionários que atenderam mais pedidos no último mês
+db.Funcionario_pedido.aggregate([
+  { $match: { "pedido.status_pedido": "Concluído", "pedido.data_pedido": { $gte: new ISODate(new Date().setMonth(new Date().getMonth() - 1)) } } }, // Filtra pedidos concluídos do último mês
+  { $group: { _id: "$ce_funcionario", total_pedidos_atendidos: { $sum: 1 } } }, // Conta os pedidos atendidos por funcionário
+  { $lookup: { from: "Funcionario", localField: "_id", foreignField: "_id", as: "funcionario" } }, // Faz o join com a coleção de funcionários
+  { $unwind: "$funcionario" }, // Desfaz o array de funcionários
+  { $project: { nm_funcionario: "$funcionario.nm_funcionario", total_pedidos_atendidos: 1 } }, // Exibe o nome do funcionário e total de pedidos atendidos
+  { $sort: { total_pedidos_atendidos: -1 } } // Ordena por quantidade de pedidos atendidos
+]);
+
+// 9. Produtos mais vendidos por categoria
+// Esta consulta retorna os produtos mais vendidos por categoria
+db.Produto.aggregate([
+  { $lookup: { from: "Produto_pedido", localField: "_id", foreignField: "ce_produto", as: "vendas" } }, // Faz o join com a tabela de pedidos
+  { $unwind: "$vendas" }, // Desfaz o array de vendas
+  { $lookup: { from: "Pedido", localField: "vendas.ce_pedido", foreignField: "_id", as: "pedido" } }, // Faz o join com a tabela de pedidos
+  { $unwind: "$pedido" }, // Desfaz o array de pedidos
+  { $match: { "pedido.status_pedido": "Concluído" } }, // Filtra os pedidos concluídos
+  { $group: { _id: { tipo_produto: "$tipo_produto", nm_produto: "$nm_produto" }, total_vendido: { $sum: "$vendas.qtd_compradas" } } }, // Conta a quantidade de vendas por produto
+  { $sort: { "_id.tipo_produto": 1, total_vendido: -1 } } // Ordena os produtos por categoria e quantidade vendida
+]);
+
+// 10. Funcionários com salário acima de um valor
+// Esta consulta retorna os funcionários que recebem acima de um salário específico
+db.Funcionario.aggregate([
+  { $lookup: { from: "Cargo", localField: "cargo._id", foreignField: "_id", as: "cargo_info" } }, // Faz o join com a tabela de cargos
+  { $unwind: "$cargo_info" }, // Desfaz o array de cargos
+  { $match: { "cargo_info.salario": { $gt: 2000 } } }, // Filtra funcionários com salário acima de 2000
+  { $project: { nm_funcionario: 1, cpf_funcionario: 1, "cargo_info.nm_cargo": 1, "cargo_info.salario": 1 } } // Exibe nome do funcionário e salário
+]);
+
+// 11. Comparação entre produtos com e sem promoção
+// Esta consulta compara a quantidade de vendas de produtos com e sem promoção
+db.Produto.aggregate([
+  { $project: { tipo_promocao: { $cond: { if: { $gt: ["$porcentagem_promoção", 0] }, then: "Com Promoção", else: "Sem Promoção" } }, _id: 1 } }, // Condicional para determinar se tem promoção
+  { $lookup: { from: "Produto_pedido", localField: "_id", foreignField: "ce_produto", as: "pedidos" } }, // Faz o join com a tabela de pedidos
+  { $unwind: "$pedidos" }, // Desfaz o array de pedidos
+  { $group: { _id: "$tipo_promocao", total_compras: { $sum: 1 } } } // Conta as compras por tipo de promoção
+]);
+
+// 12. Pizzas e aperitivos sem lactose
+// Esta consulta retorna pizzas e aperitivos sem o ingrediente "laticinio"
+db.Produto.aggregate([
+  { $match: { tipo_produto: { $in: ["pizza", "aperitivo"] } } }, // Filtra pizzas e aperitivos
+  { $lookup: { from: "Ingrediente", localField: "Ingredientes", foreignField: "nm_ingrediente", as: "ingredientes" } }, // Faz o join com a tabela de ingredientes
+  { $unwind: "$ingredientes" }, // Desfaz o array de ingredientes
+  { $match: { "ingredientes.tipo": { $ne: "lacticinio" } } }, // Filtra ingredientes que não sejam "laticinio"
+  { $project: { nm_produto: 1, tipo_produto: 1 } } // Exibe nome e tipo do produto
+]);
+
+
+// 1. Funcionários e seus cargos envolvidos em pedidos cancelados
+// Esta consulta retorna os funcionários e seus cargos que estiveram envolvidos em pedidos cancelados
+db.Funcionario.aggregate([
+  { $lookup: { from: "Pedido", localField: "_id", foreignField: "ce_funcionario", as: "pedidos" } },
+  { $unwind: "$pedidos" },
+  { $match: { "pedidos.status_pedido": "Cancelado" } },
+  { $lookup: { from: "Funcionario", localField: "pedidos.ce_funcionario", foreignField: "_id", as: "funcionarios" } },
+  { $group: { _id: { funcionario: "$nm_funcionario", cargo: "$cargo" }, numero_pedidos_cancelados: { $sum: 1 } } },
+  { $sort: { "numero_pedidos_cancelados": -1 } }
+]);
+
+// 2. Quantas pessoas que não pedem produtos de fonte animal o negócio tem atraído nos últimos meses?
+// Esta consulta retorna o número de clientes que não compraram produtos com ingredientes do tipo "animal"
+db.Pedido.aggregate([
+  { $match: { "status_pedido": "Concluído", "data_pedido": { $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)) } } },
+  { $lookup: { from: "Produto_pedido", localField: "_id", foreignField: "ce_pedido", as: "produtos_pedido" } },
+  { $unwind: "$produtos_pedido" },
+  { $lookup: { from: "Produto", localField: "produtos_pedido.ce_produto", foreignField: "_id", as: "produtos" } },
+  { $unwind: "$produtos" },
+  { $match: { "produtos.Ingredientes.tipo": { $ne: "animal" } } },
+  { $group: { _id: { $substr: ["$data_pedido", 0, 7] }, numero_de_clientes: { $addToSet: "$ce_cliente" } } },
+  { $project: { mes: "$_id", numero_de_clientes: { $size: "$numero_de_clientes" } } },
+  { $sort: { mes: -1 } }
+]);
+
+// 3. Quantas pessoas que não pedem produtos com laticínios o negócio tem atraído nos últimos meses?
+// Esta consulta retorna o número de clientes que não compraram produtos com ingredientes do tipo "laticinio"
+db.Pedido.aggregate([
+  { $match: { "status_pedido": "Concluído", "data_pedido": { $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)) } } },
+  { $lookup: { from: "Produto_pedido", localField: "_id", foreignField: "ce_pedido", as: "produtos_pedido" } },
+  { $unwind: "$produtos_pedido" },
+  { $lookup: { from: "Produto", localField: "produtos_pedido.ce_produto", foreignField: "_id", as: "produtos" } },
+  { $unwind: "$produtos" },
+  { $match: { "produtos.Ingredientes.tipo": { $ne: "lacticinio" } } },
+  { $group: { _id: { $substr: ["$data_pedido", 0, 7] }, numero_de_clientes: { $addToSet: "$ce_cliente" } } },
+  { $project: { mes: "$_id", numero_de_clientes: { $size: "$numero_de_clientes" } } },
+  { $sort: { mes: -1 } }
+]);
+
+// 4. Produtos e clientes pelos quais determinado funcionário está responsável agora mesmo
+// Esta consulta retorna os produtos e clientes que um funcionário específico está atendendo no momento
+db.Pedido.aggregate([
+  { $match: { "status_pedido": "Em aberto" } },
+  { $lookup: { from: "Produto_pedido", localField: "_id", foreignField: "ce_pedido", as: "produtos_pedido" } },
+  { $unwind: "$produtos_pedido" },
+  { $lookup: { from: "Produto", localField: "produtos_pedido.ce_produto", foreignField: "_id", as: "produtos" } },
+  { $unwind: "$produtos" },
+  { $lookup: { from: "Cliente", localField: "ce_cliente", foreignField: "_id", as: "clientes" } },
+  { $unwind: "$clientes" },
+  { $lookup: { from: "Funcionario_pedido", localField: "_id", foreignField: "ce_pedido", as: "funcionario_pedido" } },
+  { $unwind: "$funcionario_pedido" },
+  { $lookup: { from: "Funcionario", localField: "funcionario_pedido.ce_funcionario", foreignField: "_id", as: "funcionarios" } },
+  { $unwind: "$funcionarios" },
+  { $match: { "funcionarios.nm_funcionario": "Robespierre" } },
+  { $project: { "pedido_id": "$_id", "data_pedido": "$data_pedido", "produto_nome": "$produtos.nm_produto", "quantidade": "$produtos_pedido.qtd_compradas", "preco": "$produtos.preco_produto", "cliente_nome": "$clientes.nm_cliente", "cliente_endereco": "$clientes.endereco" } }
+]);
+

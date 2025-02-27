@@ -28,9 +28,9 @@ for _ in range(5000):
     else:
         cat ="bronze"
     telefone = fake.phone_number()
-        # Gerar questões alimentares para o cliente
+    # Gerar questão alimentar para o cliente
     questoes_alimentares = []
-    for _ in range(random.randint(0, 3)):  # Um cliente pode ter de 0 a 3 questões alimentares
+    for _ in range(random.randint(0, 1)):  
         tipo = random.choice(["diabetes", "hipertensão", "intolerante a lactose", "vegano", "vegetariano"])
         restringir = random.choice([True, False])
         questao = {
